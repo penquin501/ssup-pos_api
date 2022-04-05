@@ -62,14 +62,12 @@ class UtilityController extends Controller
             ->where('branch_id', '=', $hardwareConfig[0]->branch_id)
             ->get();
 
-
+        $startLogin = [];
         foreach ($confLogin as $el) {
-            $startLogin = [];
             if ($el->default_type == "Y" && $el->module_type == "LOGIN") {
                 $startLogin = $el;
             }
         }
-
         $output = [
             "brandInfo" => $brandInfo[0],
             "configLogin" => $startLogin,
