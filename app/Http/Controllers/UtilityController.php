@@ -39,6 +39,46 @@ class UtilityController extends Controller
         return response()->json($health->all(), 200);
     }
 
+    public function checkConfigLogin(Request $request)
+    {
+        $ip = $request->ip;
+
+        $hardwareConfig = DB::table('conf_branch_hardware')
+            ->where('hardware_ip', '=', $ip)
+            ->where('status', '=', 1)
+            ->get();
+
+        if (count($hardwareConfig) < 1) {
+            $message = ['message' => 'error_ip_not_found'];
+            return response()->json($message, 201);
+        }
+
+        $brandInfo = DB::table('master_brand')
+            ->where('brand_id', '=', $hardwareConfig[0]->brand_id)
+            ->get();
+
+        $confLogin = DB::table('conf_branch')
+            ->where('brand_id', '=', $hardwareConfig[0]->brand_id)
+            ->where('branch_id', '=', $hardwareConfig[0]->branch_id)
+            ->get();
+
+
+        foreach ($confLogin as $el) {
+            $startLogin = [];
+            if ($el->default_type == "Y" && $el->module_type == "LOGIN") {
+                $startLogin = $el;
+            }
+        }
+
+        $output = [
+            "brandInfo" => $brandInfo[0],
+            "configLogin" => $startLogin,
+            // "hardwareConfig" => $hardwareConfig
+        ];
+
+        return response()->json($output, 200);
+    }
+
     public function uploadImage(Request $request)
     {
         $this->validate($request, [

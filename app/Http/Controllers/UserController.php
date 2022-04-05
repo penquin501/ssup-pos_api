@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Logs;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -15,14 +16,13 @@ class UserController extends Controller
     {
         $output = [];
         $data = json_decode($request->getContent(), true);
-
         if (!isset($data['type'])) {
             $output = ['message' => [
                 "type" => ["The type is missing"]
             ]];
             return response()->json($output, 201);
         } else {
-            if ($data['type'] == "NO_KEYIN_MEMBER") {
+            if ($data['type'] == "LOCK_KEYIN_LOGIN") {
                 $validate = User::validationLogin($data);
                 if ($validate['message'] !== true) {
                     $output = ['message' => $validate['message']];
@@ -40,11 +40,14 @@ class UserController extends Controller
                 } else {
                     $user = json_decode(Auth::user(), true);
 
-                    Auth::user()->tokens()->where('name', $request->input('username'))->delete();
+                    Auth::user()->tokens()->where('name', $data['username'])->delete();
                     $token = Auth::user()->createToken($request->input('username'));
 
+                    $userRole = Auth::user()->roles == null && Auth::user()->roles == "" ? "default" : Auth::user()->roles;
+                    $user['emp_id'] = $userRole == "default" ? "1" : $user['emp_id'];
+
                     $roles = DB::table('roles')
-                        ->where('role_name', '=', Auth::user()->roles)
+                        ->where('role_name', '=', $userRole)
                         ->where('emp_id', '=', $user['emp_id'])
                         ->where('brand_id', '=', $user['brand_id'])
                         ->where('status', '1')
@@ -55,6 +58,18 @@ class UserController extends Controller
                     $position = DB::table('master_position')->where('emp_pos_id', '=', $user['position_id'])->get();
                     $group = DB::table('conf_user_group')->where('group_id', '=', $user['group_id'])->get();
                     $doc_date = DB::table('com_doc_date')->first();
+
+                    $saveLogData = [
+                        "branch_id" => $user['branch_id'],
+                        "emp_id" => $user['emp_id'],
+                        "module" => "LOGIN_POS",
+                        "module_type" => "LOGIN",
+                    ];
+                    $saveLogs = Logs::saveLogs($saveLogData);
+                    if ($saveLogs['message'] !== true) {
+                        $output = ['message' => $validate['message']];
+                        return response()->json($output, 201);
+                    }
 
                     $output = [
                         "message" => "success",
@@ -76,11 +91,14 @@ class UserController extends Controller
                             "position" => $position[0]->emp_pos_name,
                             "group_id" => $user['group_id'],
                             "group" => $group[0]->group_id,
-                            // "corporation_id" => $user['corporation_id'],
                             "brand_id" => $user['brand_id'],
-                            "brand" => $brand[0]->brand,
+                            "brand" => $brand[0]->name_th,
+                            "brand_print" => $brand[0]->name_print,
+                            "brand_logo" => $brand[0]->logo,
+                            "brand_tax_id" => $brand[0]->tax_id,
+                            "brand_theme_code" => $brand[0]->theme_code,
                             "branch_id" => $user['branch_id'],
-                            "branch" => $branch[0]->shop,
+                            "branch" => $branch[0]->branch_name,
                             "emp_status" => $user['emp_status'],
                         ],
                         "roles" => json_decode($roles[0]->permission, true),
@@ -88,7 +106,7 @@ class UserController extends Controller
                     ];
                     return response()->json($output, 200);
                 }
-                // } else if ($data['type'] == "LOCK_FINGER_SCAN") {
+                // } else if ($data['type'] == "LOCK_FINGER_SCAN_LOGIN") {
                 // } else if ($data['type'] == "LOCK_IDCARD_LOGIN") {
             } else {
                 $output = ['message' => [
@@ -127,7 +145,6 @@ class UserController extends Controller
             'position_id' => $data['position_id'],
             'group_id' => $data['group_id'],
             'brand_id' => $data['brand_id'],
-            'corporation_id' => $data['brand_id'], //รอ confirm
             'branch_id' => $data['branch_id'],
             'emp_status' => 1,
             'regis_date' => date("Y-m-d"),
@@ -227,7 +244,6 @@ class UserController extends Controller
                 'position_id' => $data['position_id'],
                 'group_id' => $data['group_id'],
                 'brand_id' => $data['brand_id'],
-                'corporation_id' => $data['brand_id'], //รอ confirm
                 'branch_id' => $data['branch_id'],
                 'emp_status' => $data['emp_status'],
                 'end_date' => date("Y-m-d", $end_date),
@@ -258,6 +274,11 @@ class UserController extends Controller
         }
     }
 
+    public function getUserInfo(Request $request)
+    {
+        // TODO
+    }
+
     public function listUser(Request $request)
     {
         if (count($request->only(['branch_id'])) == 0 || $request->input('branch_id') == null) {
@@ -265,11 +286,11 @@ class UserController extends Controller
             return response()->json($output, 201);
         } else {
             $users = DB::table('users')
-                ->join('master_position', 'users.position_id', '=', 'master_position.emp_pos_id')
-                ->join('conf_user_group', 'users.group_id', '=', 'conf_user_group.group_id')
-                ->join('master_brand', 'users.brand_id', '=', 'master_brand.brand_id')
-                ->join('master_branch', 'users.branch_id', '=', 'master_branch.branch_id')
-                ->select('users.emp_id', 'users.emp_name', 'users.emp_surname', 'users.roles', 'master_position.emp_pos_name', 'master_brand.company', 'master_branch.branch_name')
+                ->join('master_position as pos', 'users.position_id', '=', 'pos.emp_pos_id')
+                ->join('conf_user_group as grp', 'users.group_id', '=', 'grp.group_id')
+                ->join('master_brand as brand', 'users.brand_id', '=', 'brand.brand_id')
+                ->join('master_branch as branch', 'users.branch_id', '=', 'branch.branch_id')
+                ->select('users.emp_id', 'users.emp_name', 'users.emp_surname', 'users.roles', 'pos.emp_pos_name', 'branch.branch_name')
                 ->where('users.branch_id', '=', $request->branch_id)->get(); //local only
             if (count($users) == 0) {
                 $output = ['message' => 'error_no_data'];
@@ -294,9 +315,8 @@ class UserController extends Controller
             return response()->json($output, 201);
         }
         dd($validate);
-        // Auth::user()->tokens()->where('name', $request->input('username'))->delete();
-        // // Auth::user()->tokens()->where($request->input('token'))->delete();
-        // return Auth::logout();
+        // TODO
+
     }
 
     public function logout(Request $request)
@@ -309,8 +329,32 @@ class UserController extends Controller
             $output = ['message' => $validate['message']];
             return response()->json($output, 201);
         }
-        Auth::user()->tokens()->where('name', $request->input('username'))->delete();
-        // Auth::user()->tokens()->where($request->input('token'))->delete();
-        return Auth::logout();
+
+        $user = DB::table('users')->where('username', '=', $data['username'])->get();
+
+        $saveLogData = [
+            "branch_id" => $user[0]->branch_id,
+            "emp_id" => $user[0]->emp_id,
+            "module" => "LOGOUT_POS",
+            "module_type" => "LOGOUT",
+        ];
+        $saveLogs = Logs::saveLogs($saveLogData);
+        if ($saveLogs['message'] !== true) {
+            $output = ['message' => $validate['message']];
+            return response()->json($output, 201);
+        }
+
+        $result = DB::table('personal_access_tokens')->where('name', '=', $data['username'])->delete();
+        if ($result < 1) {
+            $output = [
+                'message' => 'not_existed_login'
+            ];
+            return response()->json($output, 201);
+        } else {
+            $output = [
+                'message' => 'success'
+            ];
+            return response()->json($output, 200);
+        }
     }
 }

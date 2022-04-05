@@ -45,6 +45,7 @@ Route::post('/uploadImage', [UtilityController::class, 'uploadImage']);
  * API For POS
  */
 Route::get('/checkip', [UtilityController::class, 'checkIp']);
+Route::get('/checkconfiglogin', [UtilityController::class, 'checkConfigLogin']);
 Route::post('/login', [UserController::class, 'login']);
 Route::post('/logout', [UserController::class, 'logout']);
 
