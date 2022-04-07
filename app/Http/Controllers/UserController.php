@@ -35,15 +35,17 @@ class UserController extends Controller
                 ]);
 
                 if (!Auth::attempt($credentials)) {
-                    $message = ['message' => 'error_not_found_username'];
-                    return response()->json($message, 201);
+                    $output = ['message' => [
+                        "username" => ["not found username"]
+                    ]];
+                    return response()->json($output, 201);
                 } else {
                     $user = json_decode(Auth::user(), true);
 
                     Auth::user()->tokens()->where('name', $data['username'])->delete();
-                    $token = Auth::user()->createToken($request->input('username'));
+                    $token = Auth::user()->createToken($data['username']);
 
-                    $userRole = Auth::user()->roles == null && Auth::user()->roles == "" ? "default" : Auth::user()->roles;
+                    $userRole = Auth::user()->roles == null ? "default" : Auth::user()->roles;
                     $user['emp_id'] = $userRole == "default" ? "1" : $user['emp_id'];
 
                     $roles = DB::table('roles')
@@ -276,7 +278,31 @@ class UserController extends Controller
 
     public function getUserInfo(Request $request)
     {
-        // TODO
+        $validate = User::validationGetUser(["emp_id" => $request->emp_id, "branch_id" => $request->branch_id]);
+
+        if ($validate['message'] !== true) {
+            $output = ['message' => $validate['message']];
+            return response()->json($output, 201);
+        }
+
+        $user = DB::table('users')
+            ->join('master_position as pos', 'users.position_id', '=', 'pos.emp_pos_id')
+            ->join('conf_user_group as grp', 'users.group_id', '=', 'grp.group_id')
+            ->join('master_brand as brand', 'users.brand_id', '=', 'brand.brand_id')
+            ->join('master_branch as branch', 'users.branch_id', '=', 'branch.branch_id')
+            ->select('users.emp_id', 'users.emp_name', 'users.emp_surname', 'users.roles', 'pos.emp_pos_name', 'users.branch_id', 'branch.branch_name')
+            ->where('users.emp_id', '=', $request->emp_id)
+            ->where('users.branch_id', '=', $request->branch_id)
+            ->get(); //local only
+        if (count($user) == 0) {
+            $output = ['message' => ['error_no_data']];
+            return response()->json($output, 201);
+        } else {
+            $output = [
+                "user" => $user,
+            ];
+            return response()->json($output, 200);
+        }
     }
 
     public function listUser(Request $request)
@@ -314,9 +340,63 @@ class UserController extends Controller
             $output = ['message' => $validate['message']];
             return response()->json($output, 201);
         }
-        dd($validate);
-        // TODO
 
+        $user = DB::table('users')->where('emp_id', '=', $data['emp_id'])->where('brand_id', '=', $data['brand_id'])->get();
+        $role = DB::table('roles')->where('emp_id', '=', $data['emp_id'])->where('brand_id', '=', $data['brand_id'])->where('role_name', '=', $data['role_name'])->get();
+
+        if (count($user) < 1) {
+            $output = ['message' => 'error_no_data_user'];
+            return response()->json($output, 201);
+        } else if (count($role) < 1) {
+            $output = ['message' => 'error_no_data_role'];
+            return response()->json($output, 201);
+        } else {
+            $saveLogData = [
+                "branch_id" => $user[0]->branch_id,
+                "emp_id" => $user[0]->emp_id,
+                "module" => "UPDATE_PERMISSION_POS",
+                "module_type" => "PERMISSION",
+            ];
+            $saveLogs = Logs::saveLogs($saveLogData);
+            if ($saveLogs['message'] !== true) {
+                $output = ['message' => $validate['message']];
+                return response()->json($output, 201);
+            }
+
+            $prepareData = [
+                'role_name' => $data['role_name'],
+                'brand_id' => $data['brand_id'],
+                'emp_id' => $data['emp_id'],
+                'permission' =>  $data['permission'],
+                'updated_at' => date("Y-m-d H:i:s")
+            ];
+            try {
+                $result = DB::table('roles')
+                    ->where('emp_id', '=', $data["emp_id"])
+                    ->where('role_name', '=', $data["role_name"])
+                    ->where('brand_id', '=', $data["brand_id"])
+                    ->update($prepareData);
+                if (!$result) {
+                    $error[] = $result;
+                }
+
+                if ($result == false) {
+                    $output = [
+                        'message' => 'cannot_save_permission'
+                    ];
+                    return response()->json($output, 201);
+                } else {
+                    $output = [
+                        'message' => 'success'
+                    ];
+                    return response()->json($output, 200);
+                }
+            } catch (\Throwable $th) {
+                //throw $th;
+                $output = ['message' => $th->getMessage()];
+                return response()->json($output, 500);
+            }
+        }
     }
 
     public function logout(Request $request)

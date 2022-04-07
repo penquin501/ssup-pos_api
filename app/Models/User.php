@@ -63,7 +63,6 @@ class User extends Authenticatable
     {
         $v = Validator::make($data, [
             'username' => 'required|string',
-            // 'password' => 'required|string',
         ]);
 
         if (count($v->errors()->messages()) !== 0) {
@@ -77,9 +76,6 @@ class User extends Authenticatable
     {
         $v = Validator::make($data, [
             'branch_id' => 'required|string',
-            // 'role_name' => 'required|string',
-            // 'brand_id' => 'required|string',
-            // 'permission' => 'required|string',
         ]);
 
         if (count($v->errors()->messages()) !== 0) {
@@ -95,7 +91,7 @@ class User extends Authenticatable
             'emp_id' => 'required|string',
             'role_name' => 'required|string',
             'brand_id' => 'required|string',
-            'permission' => 'required|string',
+            'permission' => 'required|Array',
         ]);
 
         if (count($v->errors()->messages()) !== 0) {
@@ -125,6 +121,19 @@ class User extends Authenticatable
             // 'corporation_id' => 'required|string',
             'branch_id' => 'required|string',
             'reg_user' => 'required|string',
+        ]);
+
+        if (count($v->errors()->messages()) !== 0) {
+            return ['message' => $v->errors()->messages()];
+        }
+
+        return ['message' => true];
+    }
+    public function validationGetUser($data)
+    {
+        $v = Validator::make($data, [
+            'emp_id' => 'required|string',
+            'branch_id' => 'required|string',
         ]);
 
         if (count($v->errors()->messages()) !== 0) {

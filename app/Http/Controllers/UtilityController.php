@@ -111,4 +111,29 @@ class UtilityController extends Controller
         //image address
         return Redirect::to('images/' . $image . '.jpg');
     }
+
+    public function checkDocDate(Request $request)
+    {
+        $data = json_decode($request->getContent(), true);
+
+        DB::table('com_doc_date')->upsert(
+            [
+                "brand_id" => $data['brand_id'],
+                "branch_id" => $data['branch_id'],
+                "doc_date" => date("Y-m-d"),
+                "remark" => "",
+                "reg_date" => date("Y-m-d"),
+                "reg_time" => date("H:i:s"),
+                "reg_user" => "system",
+                "upd_date" => date("Y-m-d"),
+                "upd_time" => date("H:i:s"),
+                "upd_user" => "system",
+            ],
+            ['brand_id', 'branch_id', 'doc_date', 'remark', 'reg_date', 'reg_time', 'reg_user', 'upd_date', 'upd_time', 'upd_user'],
+            ['doc_date', 'upd_date', 'upd_time', 'upd_user']
+        );
+        $docDate = DB::table('com_doc_date')->get();
+
+        return response()->json($docDate, 200);
+    }
 }
