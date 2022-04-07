@@ -40,6 +40,7 @@ Route::post('/tokens/create', function (Request $request) {
 
 Route::get('/imagepath', [UtilityController::class, 'getImagePath']);
 Route::post('/uploadImage', [UtilityController::class, 'uploadImage']);
+Route::post('/checkDocDate', [UtilityController::class, 'checkDocDate']);
 
 /**
  * API For POS
@@ -64,6 +65,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             Route::post('/edit', [UserController::class, 'editUser']);
             Route::post('/update/permission', [UserController::class, 'updatePermission']);
             Route::get('/listuser', [UserController::class, 'listUser']);
+            Route::get('/getUserInfo', [UserController::class, 'getUserInfo']);
         }
     );
 
