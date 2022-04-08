@@ -294,7 +294,7 @@ class UserController extends Controller
             ->join('conf_user_group as grp', 'users.group_id', '=', 'grp.group_id')
             ->join('master_brand as brand', 'users.brand_id', '=', 'brand.brand_id')
             ->join('master_branch as branch', 'users.branch_id', '=', 'branch.branch_id')
-            ->select('users.emp_id', 'users.emp_name', 'users.emp_surname', 'users.roles', 'pos.emp_pos_name', 'users.branch_id', 'branch.branch_name')
+            ->select('users.emp_id', 'users.emp_name', 'users.emp_surname', 'users.roles', 'users.position_id', 'users.group_id', 'users.brand_id', 'users.branch_id',  'pos.emp_pos_name', 'branch.branch_name', 'brand.name_th', 'brand.name_en')
             ->where('users.emp_id', '=', $request->emp_id)
             ->where('users.branch_id', '=', $request->branch_id)
             ->get(); //local only
@@ -302,8 +302,17 @@ class UserController extends Controller
             $output = ['message' => ['error_no_data']];
             return response()->json($output, 201);
         } else {
+            $roles = DB::table('roles')
+                ->where('role_name', '=', $user[0]->roles)
+                ->where('emp_id', '=', $user[0]->emp_id)
+                ->where('brand_id', '=', $user[0]->brand_id)
+                ->where('status', '1')
+                ->get();
+
             $output = [
+                "message" => "success",
                 "user" => $user,
+                "roles" => json_decode($roles[0]->permission, true),
             ];
             return response()->json($output, 200);
         }
@@ -320,7 +329,7 @@ class UserController extends Controller
                 ->join('conf_user_group as grp', 'users.group_id', '=', 'grp.group_id')
                 ->join('master_brand as brand', 'users.brand_id', '=', 'brand.brand_id')
                 ->join('master_branch as branch', 'users.branch_id', '=', 'branch.branch_id')
-                ->select('users.emp_id', 'users.emp_name', 'users.emp_surname', 'users.roles', 'pos.emp_pos_name', 'branch.branch_name')
+                ->select('users.emp_id', 'users.emp_name', 'users.emp_surname', 'users.roles', 'users.position_id', 'users.group_id', 'users.brand_id', 'users.branch_id',  'pos.emp_pos_name', 'branch.branch_name', 'brand.name_th', 'brand.name_en')
                 ->where('users.branch_id', '=', $request->branch_id)->get(); //local only
             if (count($users) == 0) {
                 $output = ['message' => 'error_no_data'];
