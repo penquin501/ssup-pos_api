@@ -59,7 +59,10 @@ class UserController extends Controller
                     $branch = DB::table('master_branch')->where('branch_id', '=', $user['branch_id'])->get();
                     $position = DB::table('master_position')->where('emp_pos_id', '=', $user['position_id'])->get();
                     $group = DB::table('conf_user_group')->where('group_id', '=', $user['group_id'])->get();
-                    $doc_date = DB::table('com_doc_date')->first();
+                    $doc_date = DB::table('com_doc_date')
+                        ->where('brand_id', '=', $user['brand_id'])
+                        ->where('branch_id', '=', $user['branch_id'])
+                        ->first();
 
                     $saveLogData = [
                         "branch_id" => $user['branch_id'],
@@ -82,6 +85,7 @@ class UserController extends Controller
                             "roles" => $user['roles'],
                             // "fing_path" => $user['fing_path'],
                             // "numoffice_d" => $user['numoffice_d'],
+                            "emp_id" => $user['emp_id'],
                             "emp_prefix_id" => $user['emp_prefix_id'],
                             "emp_name" => $user['emp_name'],
                             "emp_surname" => $user['emp_surname'],
