@@ -63,9 +63,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         function () {
             Route::post('/signup', [UserController::class, 'signUp']);
             Route::post('/edit', [UserController::class, 'editUser']);
-            Route::post('/update/permission', [UserController::class, 'updatePermission']);
             Route::get('/listuser', [UserController::class, 'listUser']);
             Route::get('/getUserInfo', [UserController::class, 'getUserInfo']);
+            Route::get('/list/permission', [UserController::class, 'listPermission']);
+            Route::post('/update/permission', [UserController::class, 'updatePermission']);
         }
     );
 
@@ -110,6 +111,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             // Route::post('/listpromotion', [ProductController::class, 'listPromotion']);
             // Route::post('/get-promotion', [ProductController::class, 'getAllPromotion']);
             // Route::post('/sync-promotion', [ProductController::class, 'syncPromotion']);
+        }
+    );
+
+    Route::prefix("menu")->group(
+        function () {
+            Route::get('/listmenu', [UtilityController::class, 'listMenu']);
         }
     );
 });

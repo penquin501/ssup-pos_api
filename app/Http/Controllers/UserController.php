@@ -343,6 +343,29 @@ class UserController extends Controller
         }
     }
 
+    public function listPermission(Request $request)
+    {
+        $brand_id = $request->brand_id;
+        $type = $request->type;
+
+        $listMenu = DB::table('com_menu')
+            ->where('brand_id', '=', $brand_id)
+            ->where('type', '=', $type)
+            ->get();
+
+        foreach ($listMenu as $menu) {
+            $subMenu = DB::table('com_menu_item')
+                ->where('menu_id', '=', $menu->id)
+                ->get();
+            if (count($subMenu) > 0) {
+                $menu->menus = $subMenu;
+            } else {
+                $menu->menus = [];
+            }
+        }
+        return response()->json($listMenu, 200);
+    }
+
     public function updatePermission(Request $request)
     {
         $output = [];

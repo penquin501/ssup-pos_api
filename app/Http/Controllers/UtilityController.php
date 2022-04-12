@@ -136,4 +136,17 @@ class UtilityController extends Controller
 
         return response()->json($docDate, 200);
     }
+
+    public function listMenu(Request $request)
+    {
+        $brand_id = $request->brand_id;
+        $type = $request->type;
+
+        $listMenu = DB::table('com_menu')
+            ->where('brand_id', '=', $brand_id)
+            ->where('type', '=', $type)
+            ->get();
+
+        return response()->json($listMenu, 200);
+    }
 }
