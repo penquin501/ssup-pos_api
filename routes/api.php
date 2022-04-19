@@ -3,6 +3,7 @@
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CashierController;
+use App\Http\Controllers\ExtraController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
@@ -117,6 +118,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix("menu")->group(
         function () {
             Route::get('/listmenu', [UtilityController::class, 'listMenu']);
+        }
+    );
+
+    Route::prefix("sql")->group(
+        function () {
+            Route::post('/createTable', [ExtraController::class, 'createTable']);
+            Route::post('/dropTable', [ExtraController::class, 'dropTable']);
+            Route::post('/addColumn', [ExtraController::class, 'addColumn']);
+            Route::post('/deleteColumn', [ExtraController::class, 'deleteColumn']);
         }
     );
 });
