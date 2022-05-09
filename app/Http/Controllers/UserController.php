@@ -460,8 +460,11 @@ class UserController extends Controller
             return response()->json($output, 201);
         }
 
-        $result = DB::table('personal_access_tokens')->where('name', '=', $data['username'])->delete();
-        if ($result < 1) {
+        $delPersonalToken = DB::table('personal_access_tokens')->where('name', '=', $data['username'])->delete();
+        // $delAccessSystem = DB::table('conf_access_system')->where('ip_address', '=', $data['ip_address'])->where('emp_id', '=', $user[0]->emp_id)->delete();
+
+        // if ($delPersonalToken < 1 && $delAccessSystem < 1) {
+        if ($delPersonalToken < 1) {
             $output = [
                 'message' => 'not_existed_login'
             ];

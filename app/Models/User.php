@@ -63,6 +63,7 @@ class User extends Authenticatable
     {
         $v = Validator::make($data, [
             'username' => 'required|string',
+            // 'ip_address' => 'required|string',
         ]);
 
         if (count($v->errors()->messages()) !== 0) {

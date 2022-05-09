@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ConfAccessSystem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -162,6 +163,55 @@ class ExtraController extends Controller
                 $output = ['message' => 'error_cannot_drop_column = ' . $data['table']];
                 return response()->json($output, 201);
             }
+        }
+    }
+
+    public function checkAccessSystem(Request $request)
+    {
+        $output = [];
+        $data = json_decode($request->getContent(), true);
+
+        $validate = ConfAccessSystem::validateCheckAccess($data);
+        if ($validate['message'] !== true) {
+            $output = ['message' => $validate['message']];
+            return response()->json($output, 201);
+        }
+
+        $checkAccessSystem = DB::table('conf_access_system')
+            ->where('ip_address', '=', $data['ip_address'])
+            ->where('path', '=', $data['path'])
+            ->where('emp_id', '=', $data['emp_id'])
+            ->get();
+
+        if (count($checkAccessSystem) > 0) {
+            $output = [
+                "message" => "existed_access_system",
+                "data" => $checkAccessSystem
+            ];
+            return response()->json($output, 200);
+        } else {
+            DB::table('conf_access_system')->upsert(
+                [
+                    "ip_address" => $data['ip_address'],
+                    "path" => $data['path'],
+                    "emp_id" => $data['emp_id'],
+                    "record_at" => date("Y-m-d H:i:s"),
+                ],
+                ['ip_address', 'path', 'emp_id'],
+                ['ip_address', 'path', 'emp_id', 'record_at']
+            );
+
+            $checkAccessSystem = DB::table('conf_access_system')
+                ->where('ip_address', '=', $data['ip_address'])
+                ->where('path', '=', $data['path'])
+                ->where('emp_id', '=', $data['emp_id'])
+                ->get();
+
+            $output = [
+                "message" => "new_access_system",
+                "data" => $checkAccessSystem
+            ];
+            return response()->json($output, 200);
         }
     }
 

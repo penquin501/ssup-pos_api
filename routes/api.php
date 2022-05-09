@@ -129,4 +129,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             Route::post('/deleteColumn', [ExtraController::class, 'deleteColumn']);
         }
     );
+
+    Route::prefix("access")->group(
+        function () {
+            Route::post('/check/system', [ExtraController::class, 'checkAccessSystem']);
+        }
+    );
 });
