@@ -149,4 +149,17 @@ class UtilityController extends Controller
 
         return response()->json($listMenu, 200);
     }
+
+    public function getLocale(Request $request)
+    {
+        // $brand_id = $request->brand_id;
+        // $type = $request->type;
+
+        $listMenu = DB::table('locale')
+            // ->where('brand_id', '=', $brand_id)
+            // ->where('type', '=', $type)
+            ->get();
+
+        return response()->json($listMenu, 200);
+    }
 }

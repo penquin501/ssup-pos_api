@@ -28,4 +28,18 @@ class CartController extends Controller
         //     }
         // }
     }
+
+    public function listCreditType(Request $request)
+    {
+        $list = DB::table('com_paid')->get(); //local only
+        if (count($list) == 0) {
+            $output = ['message' => 'error_no_data'];
+            return response()->json($output, 201);
+        } else {
+            $output = [
+                "listCreditType" => $list,
+            ];
+            return response()->json($output, 200);
+        }
+    }
 }

@@ -42,6 +42,7 @@ Route::post('/tokens/create', function (Request $request) {
 Route::get('/imagepath', [UtilityController::class, 'getImagePath']);
 Route::post('/uploadImage', [UtilityController::class, 'uploadImage']);
 Route::post('/checkDocDate', [UtilityController::class, 'checkDocDate']);
+Route::get('/get/locale', [UtilityController::class, 'getLocale']);
 
 /**
  * API For POS
@@ -82,6 +83,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix("cart")->group(
         function () {
+            Route::get('/listpaid', [CartController::class, 'listCreditType']);
             Route::get('/invoice', [CartController::class, 'invoice']);
             // Route::post('/add/temp', [CartController::class, 'register']);
             // Route::post('/edit/temp', [CartController::class, 'editUserData']);
