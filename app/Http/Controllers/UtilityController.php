@@ -152,14 +152,16 @@ class UtilityController extends Controller
 
     public function getLocale(Request $request)
     {
-        // $brand_id = $request->brand_id;
-        // $type = $request->type;
-
+        $brand_id = $request->brand_id;
         $listMenu = DB::table('locale')
-            // ->where('brand_id', '=', $brand_id)
-            // ->where('type', '=', $type)
+            ->where('brand_id', '=', $brand_id)
             ->get();
-
-        return response()->json($listMenu, 200);
+        $langs = [];
+        foreach ($listMenu as $menu) {
+            $langs[$menu->lang][$menu->page][] = [
+                $menu->key => $menu->msg
+            ];
+        }
+        return response()->json($langs, 200);
     }
 }
