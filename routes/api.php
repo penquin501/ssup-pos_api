@@ -86,7 +86,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             Route::get('/listpaid', [CartController::class, 'listCreditType']);
             Route::post('/listbilltype', [CartController::class, 'listBillType']);
             Route::get('/invoice', [CartController::class, 'invoice']);
-            // Route::post('/add/temp', [CartController::class, 'register']);
+            Route::post('/addcart/temp', [CartController::class, 'addCartTemp']);
             // Route::post('/edit/temp', [CartController::class, 'editUserData']);
             // Route::post('/save/bill', [CartController::class, 'editUserData']);
             // Route::post('/edit/temp', [CartController::class, 'editUserData']);
