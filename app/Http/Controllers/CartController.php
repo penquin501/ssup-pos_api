@@ -84,21 +84,22 @@ class CartController extends Controller
             'customer_id' => $data['member_id'],
             'brand_id' => $data['brand_id'],
             'branch_id' => $data['branch_id'],
-            'sales_type' => $data['bill_type']['doc_tp'], //
-            'sales_note' => $data['bill_type']['description'], //
-            'type' => $data['bill_type']['status_no'], //
-            'status' => "1", //
-            'change_amount' => 0, //
-            'payment_type' => "", //
-            'point_receive' => 0, //
-            'point_use' => 0, //
-            'point_before' => 0, //
-            'point_after' => 0, //
-            'user_id' => $data['emp_id'], //
-            'user_name' => $empInfo[0]->emp_name . " " . $empInfo[0]->emp_surname, //
-            'saleman_id' => $data['emp_id'], //
-            'saleman_name' => $empInfo[0]->emp_name . " " . $empInfo[0]->emp_surname, //
-            'created_at' => date("Y-m-d H:i:s"), //
+            'sales_type' => $data['bill_type']['doc_tp'],
+            'sales_note' => $data['bill_type']['description'],
+            'type' => $data['bill_type']['status_no'],
+            'status' => "1",
+            'cash' => 0,
+            'change' => 0,
+            'payment_type' => "",
+            'point_receive' => 0,
+            'point_use' => 0,
+            'point_before' => 0,
+            'point_after' => 0,
+            'user_id' => $data['emp_id'],
+            'user_name' => $empInfo[0]->emp_name . " " . $empInfo[0]->emp_surname,
+            'saleman_id' => $data['emp_id'],
+            'saleman_name' => $empInfo[0]->emp_name . " " . $empInfo[0]->emp_surname,
+            'created_at' => date("Y-m-d H:i:s"),
         ];
 
         $dataSaveBillItemTemp = [
@@ -107,15 +108,15 @@ class CartController extends Controller
             'product_name' => $product[0]->name_product,
             'product_name_print' => $product[0]->name_print,
             'product_type' => $product[0]->type,
-            'quantity' => $data['qty'], //
+            'quantity' => $data['qty'],
             'unit' => $product[0]->unit,
-            'price' => $product[0]->price, //
-            'total' => intval($data['qty']) * $product[0]->price, //
-            'user_id' => $data['emp_id'], //
-            'user_name' => $empInfo[0]->emp_name . " " . $empInfo[0]->emp_surname, //
-            'saleman_id' => $data['emp_id'], //
-            'saleman_name' => $empInfo[0]->emp_name . " " . $empInfo[0]->emp_surname, //
-            'created_at' => date("Y-m-d H:i:s"), //
+            'price' => $product[0]->price,
+            'product_taxs' => $product[0]->tax_type == 'V' ? 0.07 : 0,
+            'user_id' => $data['emp_id'],
+            'user_name' => $empInfo[0]->emp_name . " " . $empInfo[0]->emp_surname,
+            'saleman_id' => $data['emp_id'],
+            'saleman_name' => $empInfo[0]->emp_name . " " . $empInfo[0]->emp_surname,
+            'created_at' => date("Y-m-d H:i:s"),
         ];
 
         $dataSaveBillItemPromotionTemp = [
@@ -132,23 +133,22 @@ class CartController extends Controller
             $dataSaveBillItemTemp['promotion_code'] = $data['member_id'] == "00" ? "" : $data['promotion_code']; //TODO: เช็คตาราง promotion
             $dataSaveBillItemTemp['point'] = $data['member_id'] == "00" ? "0" : $data['point']; // TODO:ส่วนลดตาม member level
             $dataSaveBillItemTemp['discount'] = $data['member_id'] == "00" ? "0" : $data['discount']; // TODO:ส่วนลดตาม member level
+            $dataSaveBillItemTemp['total'] = intval($data['qty']) * $product[0]->price;
+            $dataSaveBillItemTemp['taxs'] = $dataSaveBillItemTemp['total'] * $dataSaveBillItemTemp['product_taxs'];
+            $dataSaveBillItemTemp['net'] = $dataSaveBillItemTemp['total'] - $dataSaveBillItemTemp['discount'];
             $dataSaveBillItemTemp['stock_before'] = $data['member_id'] == "00" ? "0" : $data['stock_before']; // TODO:ดึงข้อมูล stock ในร้าน
             $dataSaveBillItemTemp['stock_arter'] = $data['member_id'] == "00" ? "0" : $data['stock_arter']; // TODO: ลบจำนวน ออกจาก ข้อมูล stock ในร้าน
-            $dataSaveBillItemTemp['taxs'] = $dataSaveBillItemTemp['total'] *  $tax;
-            $dataSaveBillItemTemp['total_tax'] = $dataSaveBillItemTemp['taxs'];
 
             $dataSaveBillItemPromotionTemp['invoice_no'] = $invoiceTemp;
-            $dataSaveBillItemPromotionTemp['promotion_code'] = $data['member_id'] == "00" ? "" : $data['promotion_code'];
+            $dataSaveBillItemPromotionTemp['promotion_code'] = $data['member_id'] == "00" ? "" : $data['promotion_code']; // TODO: เช็คจาก promotion set ที่ user เลือก
 
             $dataSaveBillMainTemp['invoice_no'] = $invoiceTemp;
-            $dataSaveBillMainTemp['sub_total'] = $dataSaveBillItemTemp['total'];
-            $dataSaveBillMainTemp['taxs'] = $dataSaveBillItemTemp['taxs'];
             $dataSaveBillMainTemp['total_tax'] = $dataSaveBillItemTemp['taxs'];
-
             $dataSaveBillMainTemp['total'] = $dataSaveBillItemTemp['total'];
-            $dataSaveBillMainTemp['discount'] = $dataSaveBillItemTemp['discount'];
+            $dataSaveBillMainTemp['sub_total'] = $dataSaveBillItemTemp['total'] - $dataSaveBillMainTemp['total_tax'];
+            $dataSaveBillMainTemp['discount'] = $dataSaveBillItemTemp['discount']; // TODO:ส่วนลดตาม member level
             $dataSaveBillMainTemp['total_discount'] = $dataSaveBillItemTemp['discount'];
-            $dataSaveBillMainTemp['amount'] = $dataSaveBillItemTemp['total'];
+            $dataSaveBillMainTemp['net'] = $dataSaveBillItemTemp['total'] - $dataSaveBillItemTemp['discount'];
 
             $resultSaveBillMainTemp = DB::table('bill_main_temp')->insert($dataSaveBillMainTemp);
             $resultSaveBillItemTemp = DB::table('bill_item_temp')->insert($dataSaveBillItemTemp);
@@ -181,8 +181,8 @@ class CartController extends Controller
                         $item->quantity += $data['qty'];
                         $item->discount += $data['member_id'] == "00" ? "0" : $data['discount']; // TODO:ส่วนลดตาม member level
                         $item->total = $item->quantity * $product[0]->price;
-                        $item->taxs = $item->total * $tax;
-                        $item->total_tax = $item->taxs;
+                        $item->taxs = $item->total * $item->product_taxs;
+                        $item->net = $item->total * $item->discount;
                         $dataSaveBillItemTemp = (array)$item;
 
                         $resultUpdateBillItemTemp = DB::table('bill_item_temp')
@@ -193,14 +193,14 @@ class CartController extends Controller
             }
 
             $dataSaveBillItemTemp['invoice_no'] = $data['invoice_no_temp'];
-
             $dataSaveBillItemTemp['promotion_code'] = $data['member_id'] == "00" ? "" : $data['promotion_code']; //TODO: เช็คตาราง promotion
             $dataSaveBillItemTemp['point'] = $data['member_id'] == "00" ? "0" : $data['point']; // TODO:ส่วนลดตาม member level
             $dataSaveBillItemTemp['discount'] = $data['member_id'] == "00" ? "0" : $data['discount']; // TODO:ส่วนลดตาม member level
+            $dataSaveBillItemTemp['total'] = $dataSaveBillItemTemp['quantity'] !== 0 ? intval($dataSaveBillItemTemp['quantity']) * $product[0]->price : intval($data['qty']) * $product[0]->price;
+            $dataSaveBillItemTemp['taxs'] = $dataSaveBillItemTemp['total'] * $dataSaveBillItemTemp['product_taxs'];
+            $dataSaveBillItemTemp['net'] = $dataSaveBillItemTemp['total'] - $dataSaveBillItemTemp['discount'];
             $dataSaveBillItemTemp['stock_before'] = $data['member_id'] == "00" ? "0" : $data['stock_before']; // TODO:ดึงข้อมูล stock ในร้าน
             $dataSaveBillItemTemp['stock_arter'] = $data['member_id'] == "00" ? "0" : $data['stock_arter']; // TODO: ลบจำนวน ออกจาก ข้อมูล stock ในร้าน
-            $dataSaveBillItemTemp['taxs'] = $dataSaveBillItemTemp['total'] *  $tax;
-            $dataSaveBillItemTemp['total_tax'] = $dataSaveBillItemTemp['taxs'];
 
             $resultSaveBillItemTemp = DB::table('bill_item_temp')->insert($dataSaveBillItemTemp);
 
@@ -239,6 +239,9 @@ class CartController extends Controller
                 'total' => $sumTotal,
                 'total_discount' => $sumTotalDiscount,
             ];
+
+            $dataUpdateBillMainTemp['sub_total'] = $sumTotal - $sumTotalTaxs;
+            $dataUpdateBillMainTemp['net'] = $sumTotal - $sumTotalDiscount;
 
             $dataItemTemp = DB::table('bill_main_temp')->where('invoice_no', '=', $data['invoice_no_temp'])->update($dataUpdateBillMainTemp);
 
