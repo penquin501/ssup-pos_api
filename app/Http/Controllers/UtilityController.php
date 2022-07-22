@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Image;
 
 class UtilityController extends Controller
@@ -135,6 +137,14 @@ class UtilityController extends Controller
         $docDate = DB::table('com_doc_date')->get();
 
         return response()->json($docDate, 200);
+    }
+
+    public function updateDocDate(Request $request)
+    {
+        $brand_id = $request->brand_id;
+        $branch_id = $request->branch_id;
+        $result = DB::table('com_doc_date')->where('brand_id', '=', $brand_id)->where('branch_id', '=', $branch_id)->update(['doc_date' => date('Y-m-d')]);
+        return response()->json($result, 200);
     }
 
     public function listMenu(Request $request)

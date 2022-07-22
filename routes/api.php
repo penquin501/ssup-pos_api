@@ -42,6 +42,7 @@ Route::post('/tokens/create', function (Request $request) {
 Route::get('/imagepath', [UtilityController::class, 'getImagePath']);
 Route::post('/uploadImage', [UtilityController::class, 'uploadImage']);
 Route::post('/checkDocDate', [UtilityController::class, 'checkDocDate']);
+Route::get('/updateDocDate', [UtilityController::class, 'updateDocDate']);
 Route::get('/get/locale', [UtilityController::class, 'getLocale']);
 
 /**
@@ -85,11 +86,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         function () {
             Route::get('/listpaid', [CartController::class, 'listCreditType']);
             Route::post('/listbilltype', [CartController::class, 'listBillType']);
-            Route::get('/invoice', [CartController::class, 'invoice']);
+            Route::post('/listfreebag', [CartController::class, 'listFreeBag']);
             Route::post('/addcart/temp', [CartController::class, 'addCartTemp']);
-            // Route::post('/edit/temp', [CartController::class, 'editUserData']);
-            // Route::post('/save/bill', [CartController::class, 'editUserData']);
-            // Route::post('/edit/temp', [CartController::class, 'editUserData']);
+            Route::post('/delcart/temp', [CartController::class, 'delCartTemp']);
+            Route::post('/save/bill/main', [CartController::class, 'saveBillMain']);
+            Route::get('/receipt', [CartController::class, 'receipt']);
         }
     );
 
